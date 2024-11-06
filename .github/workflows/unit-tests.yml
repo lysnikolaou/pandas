@@ -344,10 +344,9 @@ jobs:
       - name: Build Environment
         run: |
           python --version
-          python -m pip install --upgrade pip setuptools wheel meson[ninja]==1.2.1 meson-python==0.13.1
-          python -m pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy
-          python -m pip install versioneer[toml]
-          python -m pip install python-dateutil tzdata cython hypothesis>=6.84.0 pytest>=7.3.2 pytest-xdist>=3.4.0 pytest-cov
+          python -m pip install --upgrade \
+            pip setuptools wheel meson[ninja]==1.2.1 meson-python==0.13.1 versioneer[toml] numpy \
+            python-dateutil tzdata cython hypothesis>=6.84.0 pytest>=7.3.2 pytest-xdist>=3.4.0 pytest-cov
           python -m pip install -ve . --no-build-isolation --no-index --no-deps -Csetup-args="--werror"
           python -m pip list
 
@@ -358,7 +357,12 @@ jobs:
     defaults:
       run:
         shell: bash -eou pipefail {0}
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Separate out macOS 13 and 14, since macOS 14 is arm64 only
+        os: [ubuntu-22.04, macOS-13, macOS-14, windows-latest]
 
     timeout-minutes: 90
 
@@ -378,18 +382,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python Free-threading Version
-        uses: deadsnakes/action@v3.2.0
+      - uses: Quansight-Labs/setup-python@v5.3.1
         with:
-          python-version: 3.13-dev
-          nogil: true
+          python-version: 3.13t
 
       - name: Build Environment
         run: |
           python --version
-          python -m pip install --upgrade pip setuptools wheel numpy meson[ninja]==1.2.1 meson-python==0.13.1
           python -m pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple cython
-          python -m pip install versioneer[toml]
+          python -m pip install--upgrade pip setuptools wheel meson[ninja]==1.2.1 meson-python==0.13.1 versioneer[toml] numpy
           python -m pip install python-dateutil pytz tzdata hypothesis>=6.84.0 pytest>=7.3.2 pytest-xdist>=3.4.0 pytest-cov
           python -m pip install -ve . --no-build-isolation --no-index --no-deps -Csetup-args="--werror"
           python -m pip list
